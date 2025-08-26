@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- RENDER FUNCTIONS ---
     const renderFolders = () => {
         foldersGrid.innerHTML = '';
-        // Render existing folders
         data.folders.forEach(folder => {
             const folderCard = document.createElement('div');
             folderCard.className = 'folder-card';
@@ -105,15 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
             foldersGrid.appendChild(folderCard);
         });
 
-        // Add the "Add New Folder" card
         const addFolderCard = document.createElement('div');
         addFolderCard.className = 'add-folder-card';
         addFolderCard.innerHTML = `<i class="fa-solid fa-plus"></i><span>Add New Folder</span>`;
         addFolderCard.addEventListener('click', handleAddFolder);
         foldersGrid.appendChild(addFolderCard);
 
-
-        // Add event listeners for delete buttons
         document.querySelectorAll('.delete-folder-btn').forEach(btn => {
             btn.addEventListener('click', handleDeleteFolder);
         });
@@ -121,10 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderBoard = () => {
         const folder = data.folders.find(f => f.id === currentFolderId);
-        if (!folder) {
-            showFoldersView();
-            return;
-        }
+        if (!folder) { showFoldersView(); return; }
 
         boardTitleEl.textContent = folder.name;
         kanbanBoard.innerHTML = '';
@@ -143,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="task-list"></div>
                 <form class="add-task-form add-form">
                     <input type="text" placeholder="Add a new task..." required>
-                    <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button type="submit" aria-label="Add Task"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             `;
             kanbanBoard.appendChild(columnEl);
@@ -174,14 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleAddFolder = () => {
         const folderName = prompt("Enter a name for the new folder:", "New Folder");
         if (folderName && folderName.trim() !== "") {
-            const newFolder = {
-                id: `folder-${Date.now()}`,
-                name: folderName.trim(),
-                tasks: []
-            };
+            const newFolder = { id: `folder-${Date.now()}`, name: folderName.trim(), tasks: [] };
             data.folders.push(newFolder);
             saveData();
-            renderFolders(); // Re-render to show the new folder
+            renderFolders();
         }
     };
     
@@ -222,14 +211,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DRAG AND DROP LOGIC ---
     const addBoardEventListeners = () => {
-        document.querySelectorAll('.add-task-form').forEach(form => {
-            form.addEventListener('submit', handleAddTask);
-        });
-
-        document.querySelectorAll('.delete-task-btn').forEach(btn => {
-            btn.addEventListener('click', handleDeleteTask);
-        });
-
+        document.querySelectorAll('.add-task-form').forEach(form => form.addEventListener('submit', handleAddTask));
+        document.querySelectorAll('.delete-task-btn').forEach(btn => btn.addEventListener('click', handleDeleteTask));
+        
         const taskCards = document.querySelectorAll('.task-card');
         taskCards.forEach(card => {
             card.addEventListener('dragstart', (e) => {
@@ -283,4 +267,4 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     init();
-});            
+});

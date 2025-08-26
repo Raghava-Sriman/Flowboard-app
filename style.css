@@ -1,0 +1,471 @@
+:root {
+    /* Light Mode */
+    --bg-color-light: #f4f7f9;
+    --surface-color-light: #ffffff;
+    --text-primary-light: #1a1a1a;
+    --text-secondary-light: #6b7280;
+    --accent-color-light: #3b82f6;
+    --border-color-light: #e5e7eb;
+    --shadow-light: 0 4px 6px rgba(0, 0, 0, 0.05);
+
+    /* Dark Mode */
+    --bg-color-dark: #111827;
+    --surface-color-dark: #1f2937;
+    --text-primary-dark: #f9fafb;
+    --text-secondary-dark: #9ca3af;
+    --accent-color-dark: #60a5fa;
+    --border-color-dark: #374151;
+    --shadow-dark: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.light-mode {
+    background-color: var(--bg-color-light);
+    color: var(--text-primary-light);
+}
+
+.dark-mode {
+    background-color: var(--bg-color-dark);
+    color: var(--text-primary-dark);
+}
+
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Header */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.app-title {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.total-tasks-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.light-mode .total-tasks-container {
+    background-color: var(--surface-color-light);
+    color: var(--text-secondary-light);
+    border: 1px solid var(--border-color-light);
+}
+
+.dark-mode .total-tasks-container {
+    background-color: var(--surface-color-dark);
+    color: var(--text-secondary-dark);
+    border: 1px solid var(--border-color-dark);
+}
+
+.theme-switcher {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-color-light);
+}
+
+.dark-mode input:checked+.slider {
+    background-color: var(--accent-color-dark);
+}
+
+
+input:checked+.slider:before {
+    transform: translateX(22px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Views */
+.view {
+    display: none;
+}
+
+.view.active-view {
+    display: block;
+}
+
+/* Folders View */
+.folders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.folders-header h2 {
+    font-size: 1.5rem;
+}
+
+.add-form {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.add-form input {
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+}
+
+.add-form button {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.light-mode .add-form input {
+    background-color: var(--surface-color-light);
+    border-color: var(--border-color-light);
+    color: var(--text-primary-light);
+}
+
+.light-mode .add-form button {
+    background-color: var(--accent-color-light);
+    color: white;
+}
+.light-mode .add-form button:hover {
+    background-color: #2563eb;
+}
+
+.dark-mode .add-form input {
+    background-color: var(--surface-color-dark);
+    border-color: var(--border-color-dark);
+    color: var(--text-primary-dark);
+}
+
+.dark-mode .add-form button {
+    background-color: var(--accent-color-dark);
+    color: var(--text-primary-dark);
+}
+.dark-mode .add-form button:hover {
+    background-color: #3b82f6;
+}
+
+.folders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.folder-card {
+    padding: 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.folder-card:hover {
+    transform: translateY(-5px);
+}
+
+.light-mode .folder-card {
+    background-color: var(--surface-color-light);
+    border: 1px solid var(--border-color-light);
+    box-shadow: var(--shadow-light);
+}
+.light-mode .folder-card:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+}
+
+.dark-mode .folder-card {
+    background-color: var(--surface-color-dark);
+    border: 1px solid var(--border-color-dark);
+    box-shadow: var(--shadow-dark);
+}
+.dark-mode .folder-card:hover {
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+
+.folder-card-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.folder-card-content .fa-folder {
+    font-size: 2rem;
+    color: var(--accent-color-light);
+}
+
+.dark-mode .folder-card-content .fa-folder {
+    color: var(--accent-color-dark);
+}
+
+.folder-info h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.folder-info p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.light-mode .folder-info p {
+    color: var(--text-secondary-light);
+}
+
+.dark-mode .folder-info p {
+    color: var(--text-secondary-dark);
+}
+
+.delete-folder-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+.delete-folder-btn:hover {
+    opacity: 1;
+}
+
+.light-mode .delete-folder-btn { color: var(--text-secondary-light); }
+.dark-mode .delete-folder-btn { color: var(--text-secondary-dark); }
+
+/* Board View */
+.board-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+#back-to-folders-btn {
+    background: none;
+    border: 1px solid;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+}
+
+.light-mode #back-to-folders-btn {
+    border-color: var(--border-color-light);
+    color: var(--text-primary-light);
+}
+
+.dark-mode #back-to-folders-btn {
+    border-color: var(--border-color-dark);
+    color: var(--text-primary-dark);
+}
+
+#board-title {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.kanban-board {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+}
+
+.kanban-column {
+    min-width: 280px;
+    width: 280px;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.light-mode .kanban-column {
+    background-color: var(--bg-color-light);
+    border: 1px solid var(--border-color-light);
+}
+
+.dark-mode .kanban-column {
+    background-color: var(--surface-color-dark);
+    border: 1px solid var(--border-color-dark);
+}
+
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.5rem 1rem 0.5rem;
+    border-bottom: 2px solid;
+    margin-bottom: 1rem;
+}
+
+#col-todo .column-header { border-color: #f59e0b; }
+#col-working .column-header { border-color: #3b82f6; }
+#col-pending .column-header { border-color: #a855f7; }
+#col-paused .column-header { border-color: #ef4444; }
+#col-finished .column-header { border-color: #22c55e; }
+
+
+.column-title {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.column-task-count {
+    font-size: 0.9rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 10px;
+}
+
+.light-mode .column-task-count {
+    background-color: var(--border-color-light);
+    color: var(--text-secondary-light);
+}
+
+.dark-mode .column-task-count {
+    background-color: var(--border-color-dark);
+    color: var(--text-secondary-dark);
+}
+
+.task-list {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+}
+
+.task-card {
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: grab;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.light-mode .task-card {
+    background-color: var(--surface-color-light);
+    box-shadow: var(--shadow-light);
+}
+
+.dark-mode .task-card {
+    background-color: #374151;
+    box-shadow: var(--shadow-dark);
+}
+
+.task-card.dragging {
+    opacity: 0.5;
+}
+
+.kanban-column.drag-over {
+    transform: scale(1.02);
+}
+.light-mode .kanban-column.drag-over {
+    background-color: #eef2ff;
+}
+.dark-mode .kanban-column.drag-over {
+    background-color: #374151;
+}
+
+
+.delete-task-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.task-card:hover .delete-task-btn {
+    opacity: 0.6;
+}
+.delete-task-btn:hover {
+    opacity: 1 !important;
+}
+
+.light-mode .delete-task-btn { color: var(--text-secondary-light); }
+.dark-mode .delete-task-btn { color: var(--text-secondary-dark); }
+
+.add-task-form input {
+    width: calc(100% - 1.5rem); /* Adjust for padding */
+}

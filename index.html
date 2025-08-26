@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowBoard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a3a6f982d6.js" crossorigin="anonymous"></script>
+</head>
+<body class="light-mode">
+
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-left">
+                <h1 class="app-title">FlowBoard</h1>
+                <div class="total-tasks-container">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span id="total-tasks-count">Total Tasks: 0</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="theme-switcher">
+                    <i class="fa-solid fa-sun"></i>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+            </div>
+        </header>
+
+        <main id="folders-view" class="view active-view">
+            <div class="folders-header">
+                <h2>My Folders</h2>
+                <form id="add-folder-form" class="add-form">
+                    <input type="text" id="new-folder-name" placeholder="New Folder Name" required>
+                    <button type="submit"><i class="fa-solid fa-plus"></i> Add Folder</button>
+                </form>
+            </div>
+            <div id="folders-grid" class="folders-grid">
+                </div>
+        </main>
+
+        <main id="board-view" class="view">
+            <div class="board-header">
+                <button id="back-to-folders-btn"><i class="fa-solid fa-arrow-left"></i> Back to Folders</button>
+                <h2 id="board-title"></h2>
+            </div>
+            <div class="kanban-board">
+                </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

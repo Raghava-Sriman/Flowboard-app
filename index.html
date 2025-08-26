@@ -13,6 +13,7 @@
 <body class="light-mode">
 
     <div class="app-container">
+        <!-- APP HEADER -->
         <header class="app-header">
             <div class="header-left">
                 <h1 class="app-title">FlowBoard</h1>
@@ -26,6 +27,7 @@
                 </div>
             </div>
             <div class="header-right">
+                <!-- THEME SWITCHER: Redesigned for integrated icons -->
                 <div class="theme-switcher">
                     <label class="switch">
                         <input type="checkbox" id="theme-toggle">
@@ -38,21 +40,25 @@
             </div>
         </header>
 
+        <!-- FOLDERS VIEW -->
         <main id="folders-view" class="view active-view">
             <div class="folders-header">
                 <h2>My Folders</h2>
-                </div>
+            </div>
             <div id="folders-grid" class="folders-grid">
-                </div>
+                <!-- Folder cards will be injected here, including the new "Add" card -->
+            </div>
         </main>
 
+        <!-- BOARD VIEW -->
         <main id="board-view" class="view">
             <div class="board-header">
                 <button id="back-to-folders-btn"><i class="fa-solid fa-arrow-left"></i></button>
                 <h2 id="board-title"></h2>
             </div>
             <div class="kanban-board">
-                </div>
+                <!-- Kanban columns will be injected here -->
+            </div>
         </main>
     </div>
 

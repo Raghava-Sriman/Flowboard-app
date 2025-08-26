@@ -14,11 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
     const themeToggle = document.getElementById('theme-toggle');
     const totalTasksCountEl = document.getElementById('total-tasks-count');
+    const finishedTasksCountEl = document.getElementById('finished-tasks-count');
     const foldersView = document.getElementById('folders-view');
     const boardView = document.getElementById('board-view');
     const foldersGrid = document.getElementById('folders-grid');
-    const addFolderForm = document.getElementById('add-folder-form');
-    const newFolderNameInput = document.getElementById('new-folder-name');
     const boardTitleEl = document.getElementById('board-title');
     const kanbanBoard = document.querySelector('.kanban-board');
     const backToFoldersBtn = document.getElementById('back-to-folders-btn');
@@ -42,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedData) {
             data = JSON.parse(savedData);
         } else {
-            // Add default folders if it's the first time
             data = {
                 folders: [
                     { id: `folder-${Date.now()}`, name: 'School', tasks: [] },
@@ -71,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         boardView.classList.remove('active-view');
         foldersView.classList.add('active-view');
         renderFolders();
-        updateTotalTasksCount();
+        updateCounters();
     };
 
     const showBoardView = (folderId) => {
@@ -84,11 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- RENDER FUNCTIONS ---
     const renderFolders = () => {
         foldersGrid.innerHTML = '';
+        // Render existing folders
         data.folders.forEach(folder => {
             const folderCard = document.createElement('div');
             folderCard.className = 'folder-card';
             folderCard.dataset.folderId = folder.id;
-
             folderCard.innerHTML = `
                 <div class="folder-card-content">
                     <i class="fa-solid fa-folder"></i>
@@ -99,15 +97,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <button class="delete-folder-btn" data-folder-id="${folder.id}"><i class="fa-solid fa-trash-can"></i></button>
             `;
-
             folderCard.addEventListener('click', (e) => {
                 if (!e.target.closest('.delete-folder-btn')) {
                     showBoardView(folder.id);
                 }
             });
-
             foldersGrid.appendChild(folderCard);
         });
+
+        // Add the "Add New Folder" card
+        const addFolderCard = document.createElement('div');
+        addFolderCard.className = 'add-folder-card';
+        addFolderCard.innerHTML = `<i class="fa-solid fa-plus"></i><span>Add New Folder</span>`;
+        addFolderCard.addEventListener('click', handleAddFolder);
+        foldersGrid.appendChild(addFolderCard);
+
 
         // Add event listeners for delete buttons
         document.querySelectorAll('.delete-folder-btn').forEach(btn => {
@@ -130,9 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             columnEl.className = 'kanban-column';
             columnEl.id = `col-${column.id}`;
             columnEl.dataset.status = column.id;
-
             const tasksInColumn = folder.tasks.filter(t => t.status === column.id);
-
             columnEl.innerHTML = `
                 <div class="column-header">
                     <h3 class="column-title">${column.title}</h3>
@@ -141,11 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="task-list"></div>
                 <form class="add-task-form add-form">
                     <input type="text" placeholder="Add a new task..." required>
-                    <button type="submit"><i class="fa-solid fa-plus"></i></button>
+                    <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
                 </form>
             `;
             kanbanBoard.appendChild(columnEl);
-
             const taskList = columnEl.querySelector('.task-list');
             tasksInColumn.forEach(task => {
                 const taskCard = createTaskCard(task);
@@ -154,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         addBoardEventListeners();
-        updateTotalTasksCount();
+        updateCounters();
     };
 
     const createTaskCard = (task) => {
@@ -170,19 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- EVENT HANDLING ---
-    const handleAddFolder = (e) => {
-        e.preventDefault();
-        const folderName = newFolderNameInput.value.trim();
-        if (folderName) {
+    const handleAddFolder = () => {
+        const folderName = prompt("Enter a name for the new folder:", "New Folder");
+        if (folderName && folderName.trim() !== "") {
             const newFolder = {
                 id: `folder-${Date.now()}`,
-                name: folderName,
+                name: folderName.trim(),
                 tasks: []
             };
             data.folders.push(newFolder);
-            newFolderNameInput.value = '';
             saveData();
-            renderFolders();
+            renderFolders(); // Re-render to show the new folder
         }
     };
     
@@ -192,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data.folders = data.folders.filter(f => f.id !== folderId);
             saveData();
             renderFolders();
-            updateTotalTasksCount();
+            updateCounters();
         }
     };
 
@@ -204,11 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = form.closest('.kanban-column').dataset.status;
 
         if (taskContent) {
-            const newTask = {
-                id: `task-${Date.now()}`,
-                content: taskContent,
-                status: status
-            };
+            const newTask = { id: `task-${Date.now()}`, content: taskContent, status: status };
             const folder = data.folders.find(f => f.id === currentFolderId);
             folder.tasks.push(newTask);
             input.value = '';
@@ -249,13 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const columns = document.querySelectorAll('.kanban-column');
         columns.forEach(column => {
-            column.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                column.classList.add('drag-over');
-            });
-            column.addEventListener('dragleave', () => {
-                column.classList.remove('drag-over');
-            });
+            column.addEventListener('dragover', (e) => { e.preventDefault(); column.classList.add('drag-over'); });
+            column.addEventListener('dragleave', () => { column.classList.remove('drag-over'); });
             column.addEventListener('drop', (e) => {
                 e.preventDefault();
                 column.classList.remove('drag-over');
@@ -272,9 +262,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- UTILITY FUNCTIONS ---
-    const updateTotalTasksCount = () => {
-        const total = data.folders.reduce((acc, folder) => acc + folder.tasks.length, 0);
-        totalTasksCountEl.textContent = `Total Tasks: ${total}`;
+    const updateCounters = () => {
+        const counts = data.folders.reduce((acc, folder) => {
+            folder.tasks.forEach(task => {
+                if (task.status === 'finished') { acc.finished++; } else { acc.active++; }
+            });
+            return acc;
+        }, { active: 0, finished: 0 });
+        totalTasksCountEl.textContent = `Active Tasks: ${counts.active}`;
+        finishedTasksCountEl.textContent = `Tasks Finished: ${counts.finished}`;
     };
 
     // --- INITIALIZATION ---
@@ -283,9 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme();
         showFoldersView();
         themeToggle.addEventListener('change', toggleTheme);
-        addFolderForm.addEventListener('submit', handleAddFolder);
         backToFoldersBtn.addEventListener('click', showFoldersView);
     };
 
     init();
-});
+});            

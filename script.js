@@ -1,28 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-    // --- STATE MANAGEMENT ---
-    let data = {
-        folders: [],
-        settings: {
-            theme: 'light-mode'
-        }
-    };
-    let currentFolderId = null;
-    let draggedTaskId = null;
-
-    // --- DOM ELEMENTS ---
-    const body = document.body;
-    const themeToggle = document.getElementById('theme-toggle');
-    const totalTasksCountEl = document.getElementById('total-tasks-count');
-    const finishedTasksCountEl = document.getElementById('finished-tasks-count');
-    const foldersView = document.getElementById('folders-view');
-    const boardView = document.getElementById('board-view');
-    const foldersGrid = document.getElementById('folders-grid');
-    const boardTitleEl = document.getElementById('board-title');
-    const kanbanBoard = document.querySelector('.kanban-board');
+    // DOM Elements
+    const folderView = document.getElementById('folder-view');
+    const taskView = document.getElementById('task-view');
+    const taskBoard = document.getElementById('task-board');
+    const currentFolderTitle = document.getElementById('current-folder-title');
     const backToFoldersBtn = document.getElementById('back-to-folders-btn');
+    const addTaskForm = document.getElementById('add-task-form');
+    const newTaskInput = document.getElementById('new-task-input');
+    const totalTasksCountElem = document.getElementById('total-tasks-count');
+    const finishedTasksCountElem = document.getElementById('finished-tasks-count');
+    const themeToggleCheckbox = document.getElementById('theme-toggle-checkbox');
 
-    // --- COLUMN DEFINITIONS ---
+    // App State
+    let currentFolderIndex = null;
+    let draggedTask = null;
+
     const columns = [
         { id: 'todo', title: 'Things to Do' },
         { id: 'working', title: 'Working' },
@@ -31,240 +23,221 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'finished', title: 'Finished' }
     ];
 
-    // --- DATA PERSISTENCE (LOCAL STORAGE) ---
-    const saveData = () => {
-        localStorage.setItem('flowBoardData', JSON.stringify(data));
+    let data = {
+        folders: [
+            { name: 'School', tasks: [] },
+            { name: 'Home', tasks: [] }
+        ]
     };
 
-    const loadData = () => {
-        const savedData = localStorage.getItem('flowBoardData');
+    // --- DATA PERSISTENCE ---
+    function saveData() {
+        localStorage.setItem('flowboardData', JSON.stringify(data));
+    }
+
+    function loadData() {
+        const savedData = localStorage.getItem('flowboardData');
         if (savedData) {
             data = JSON.parse(savedData);
-        } else {
-            data = {
-                folders: [
-                    { id: `folder-${Date.now()}`, name: 'School', tasks: [] },
-                    { id: `folder-${Date.now() + 1}`, name: 'Home', tasks: [] }
-                ],
-                settings: { theme: 'light-mode' }
-            };
         }
-    };
+        const savedTheme = localStorage.getItem('flowboardTheme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggleCheckbox.checked = false;
+        } else {
+            document.body.classList.remove('dark-mode');
+            themeToggleCheckbox.checked = true;
+        }
+    }
 
-    // --- THEME MANAGEMENT ---
-    const applyTheme = () => {
-        body.className = data.settings.theme;
-        themeToggle.checked = data.settings.theme === 'dark-mode';
-    };
-
-    const toggleTheme = () => {
-        data.settings.theme = data.settings.theme === 'light-mode' ? 'dark-mode' : 'light-mode';
-        applyTheme();
-        saveData();
-    };
-
-    // --- VIEW SWITCHING ---
-    const showFoldersView = () => {
-        currentFolderId = null;
-        boardView.classList.remove('active-view');
-        foldersView.classList.add('active-view');
+    // --- VIEW MANAGEMENT ---
+    function showFolderView() {
+        folderView.style.display = 'grid';
+        taskView.style.display = 'none';
+        currentFolderIndex = null;
         renderFolders();
         updateCounters();
-    };
+    }
 
-    const showBoardView = (folderId) => {
-        currentFolderId = folderId;
-        foldersView.classList.remove('active-view');
-        boardView.classList.add('active-view');
-        renderBoard();
-    };
+    function showTaskView(folderIndex) {
+        folderView.style.display = 'none';
+        taskView.style.display = 'block';
+        currentFolderIndex = folderIndex;
+        renderTasks();
+    }
 
-    // --- RENDER FUNCTIONS ---
-    const renderFolders = () => {
-        foldersGrid.innerHTML = '';
-        data.folders.forEach(folder => {
+    // --- RENDERING ---
+    function renderFolders() {
+        folderView.innerHTML = '';
+        data.folders.forEach((folder, index) => {
             const folderCard = document.createElement('div');
             folderCard.className = 'folder-card';
-            folderCard.dataset.folderId = folder.id;
+            folderCard.dataset.index = index;
+            
+            const activeTasks = folder.tasks.filter(t => t.status !== 'finished').length;
+
             folderCard.innerHTML = `
-                <div class="folder-card-content">
-                    <i class="fa-solid fa-folder"></i>
-                    <div class="folder-info">
-                        <h3>${folder.name}</h3>
-                        <p>${folder.tasks.length} tasks</p>
-                    </div>
-                </div>
-                <button class="delete-folder-btn" data-folder-id="${folder.id}"><i class="fa-solid fa-trash-can"></i></button>
+                <h2>${folder.name}</h2>
+                <div class="folder-meta">${activeTasks} active tasks</div>
             `;
-            folderCard.addEventListener('click', (e) => {
-                if (!e.target.closest('.delete-folder-btn')) {
-                    showBoardView(folder.id);
-                }
-            });
-            foldersGrid.appendChild(folderCard);
+            folderCard.addEventListener('click', () => showTaskView(index));
+            folderView.appendChild(folderCard);
         });
 
+        // Add "Add Folder" card
         const addFolderCard = document.createElement('div');
-        addFolderCard.className = 'add-folder-card';
-        addFolderCard.innerHTML = `<i class="fa-solid fa-plus"></i><span>Add New Folder</span>`;
-        addFolderCard.addEventListener('click', handleAddFolder);
-        foldersGrid.appendChild(addFolderCard);
-
-        document.querySelectorAll('.delete-folder-btn').forEach(btn => {
-            btn.addEventListener('click', handleDeleteFolder);
-        });
-    };
-
-    const renderBoard = () => {
-        const folder = data.folders.find(f => f.id === currentFolderId);
-        if (!folder) { showFoldersView(); return; }
-
-        boardTitleEl.textContent = folder.name;
-        kanbanBoard.innerHTML = '';
+        addFolderCard.id = 'add-folder-card';
+        addFolderCard.title = 'Create a new folder';
+        addFolderCard.innerHTML = `
+            <svg class="plus-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        `;
+        addFolderCard.addEventListener('click', addFolder);
+        folderView.appendChild(addFolderCard);
+    }
+    
+    function renderTasks() {
+        if (currentFolderIndex === null) return;
+        
+        const folder = data.folders[currentFolderIndex];
+        currentFolderTitle.textContent = folder.name;
+        taskBoard.innerHTML = '';
 
         columns.forEach(column => {
             const columnEl = document.createElement('div');
-            columnEl.className = 'kanban-column';
-            columnEl.id = `col-${column.id}`;
-            columnEl.dataset.status = column.id;
-            const tasksInColumn = folder.tasks.filter(t => t.status === column.id);
+            columnEl.className = 'task-column';
+            columnEl.dataset.columnId = column.id;
+            
+            const tasksInColumn = folder.tasks.filter(task => task.status === column.id);
+
             columnEl.innerHTML = `
                 <div class="column-header">
-                    <h3 class="column-title">${column.title}</h3>
+                    <h3>${column.title}</h3>
                     <span class="column-task-count">${tasksInColumn.length}</span>
                 </div>
                 <div class="task-list"></div>
-                <form class="add-task-form add-form">
-                    <input type="text" placeholder="Add a new task..." required>
-                    <button type="submit" aria-label="Add Task"><i class="fa-solid fa-paper-plane"></i></button>
-                </form>
             `;
-            kanbanBoard.appendChild(columnEl);
+
             const taskList = columnEl.querySelector('.task-list');
+
             tasksInColumn.forEach(task => {
-                const taskCard = createTaskCard(task);
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card';
+                taskCard.draggable = true;
+                taskCard.textContent = task.content;
+                taskCard.dataset.taskId = task.id;
                 taskList.appendChild(taskCard);
+                
+                taskCard.addEventListener('dragstart', handleDragStart);
+                taskCard.addEventListener('dragend', handleDragEnd);
             });
+            
+            columnEl.addEventListener('dragover', handleDragOver);
+            columnEl.addEventListener('drop', handleDrop);
+            
+            taskBoard.appendChild(columnEl);
         });
-
-        addBoardEventListeners();
         updateCounters();
-    };
+    }
 
-    const createTaskCard = (task) => {
-        const taskCard = document.createElement('div');
-        taskCard.className = 'task-card';
-        taskCard.dataset.taskId = task.id;
-        taskCard.draggable = true;
-        taskCard.innerHTML = `
-            <span>${task.content}</span>
-            <button class="delete-task-btn" data-task-id="${task.id}"><i class="fa-solid fa-xmark"></i></button>
-        `;
-        return taskCard;
-    };
+    // --- COUNTERS ---
+    function updateCounters() {
+        let total = 0;
+        let finished = 0;
 
-    // --- EVENT HANDLING ---
-    const handleAddFolder = () => {
-        const folderName = prompt("Enter a name for the new folder:", "New Folder");
-        if (folderName && folderName.trim() !== "") {
-            const newFolder = { id: `folder-${Date.now()}`, name: folderName.trim(), tasks: [] };
-            data.folders.push(newFolder);
-            saveData();
-            renderFolders();
-        }
-    };
-    
-    const handleDeleteFolder = (e) => {
-        const folderId = e.currentTarget.dataset.folderId;
-        if (confirm('Are you sure you want to delete this folder and all its tasks?')) {
-            data.folders = data.folders.filter(f => f.id !== folderId);
-            saveData();
-            renderFolders();
-            updateCounters();
-        }
-    };
-
-    const handleAddTask = (e) => {
-        e.preventDefault();
-        const form = e.target;
-        const input = form.querySelector('input');
-        const taskContent = input.value.trim();
-        const status = form.closest('.kanban-column').dataset.status;
-
-        if (taskContent) {
-            const newTask = { id: `task-${Date.now()}`, content: taskContent, status: status };
-            const folder = data.folders.find(f => f.id === currentFolderId);
-            folder.tasks.push(newTask);
-            input.value = '';
-            saveData();
-            renderBoard();
-        }
-    };
-
-    const handleDeleteTask = (e) => {
-        const taskId = e.currentTarget.dataset.taskId;
-        const folder = data.folders.find(f => f.id === currentFolderId);
-        folder.tasks = folder.tasks.filter(t => t.id !== taskId);
-        saveData();
-        renderBoard();
-    };
-
-    // --- DRAG AND DROP LOGIC ---
-    const addBoardEventListeners = () => {
-        document.querySelectorAll('.add-task-form').forEach(form => form.addEventListener('submit', handleAddTask));
-        document.querySelectorAll('.delete-task-btn').forEach(btn => btn.addEventListener('click', handleDeleteTask));
-        
-        const taskCards = document.querySelectorAll('.task-card');
-        taskCards.forEach(card => {
-            card.addEventListener('dragstart', (e) => {
-                draggedTaskId = e.target.dataset.taskId;
-                setTimeout(() => e.target.classList.add('dragging'), 0);
-            });
-            card.addEventListener('dragend', (e) => {
-                draggedTaskId = null;
-                e.target.classList.remove('dragging');
-            });
-        });
-
-        const columns = document.querySelectorAll('.kanban-column');
-        columns.forEach(column => {
-            column.addEventListener('dragover', (e) => { e.preventDefault(); column.classList.add('drag-over'); });
-            column.addEventListener('dragleave', () => { column.classList.remove('drag-over'); });
-            column.addEventListener('drop', (e) => {
-                e.preventDefault();
-                column.classList.remove('drag-over');
-                const newStatus = column.dataset.status;
-                const folder = data.folders.find(f => f.id === currentFolderId);
-                const task = folder.tasks.find(t => t.id === draggedTaskId);
-                if (task) {
-                    task.status = newStatus;
-                    saveData();
-                    renderBoard();
+        data.folders.forEach(folder => {
+            folder.tasks.forEach(task => {
+                if (task.status === 'finished') {
+                    finished++;
+                } else {
+                    total++;
                 }
             });
         });
-    };
 
-    // --- UTILITY FUNCTIONS ---
-    const updateCounters = () => {
-        const counts = data.folders.reduce((acc, folder) => {
-            folder.tasks.forEach(task => {
-                if (task.status === 'finished') { acc.finished++; } else { acc.active++; }
-            });
-            return acc;
-        }, { active: 0, finished: 0 });
-        totalTasksCountEl.textContent = `Active Tasks: ${counts.active}`;
-        finishedTasksCountEl.textContent = `Tasks Finished: ${counts.finished}`;
-    };
+        totalTasksCountElem.textContent = total;
+        finishedTasksCountElem.textContent = finished;
+    }
+
+    // --- EVENT HANDLERS & LOGIC ---
+    function addFolder() {
+        const name = prompt('Enter a name for the new folder:');
+        if (name && name.trim()) {
+            data.folders.push({ name: name.trim(), tasks: [] });
+            saveData();
+            renderFolders();
+        } else if (name !== null) {
+            alert('Folder name cannot be empty.');
+        }
+    }
+    
+    addTaskForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const taskContent = newTaskInput.value.trim();
+        if (taskContent && currentFolderIndex !== null) {
+            const newTask = {
+                id: `task-${Date.now()}`,
+                content: taskContent,
+                status: 'todo' // Default status
+            };
+            data.folders[currentFolderIndex].tasks.push(newTask);
+            saveData();
+            renderTasks();
+            newTaskInput.value = '';
+        }
+    });
+
+    backToFoldersBtn.addEventListener('click', showFolderView);
+
+    themeToggleCheckbox.addEventListener('change', () => {
+        if (!themeToggleCheckbox.checked) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('flowboardTheme', 'dark');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('flowboardTheme', 'light');
+        }
+    });
+
+    // --- DRAG AND DROP LOGIC ---
+    function handleDragStart(e) {
+        draggedTask = e.target;
+        setTimeout(() => {
+            e.target.classList.add('dragging');
+        }, 0);
+    }
+
+    function handleDragEnd(e) {
+        e.target.classList.remove('dragging');
+        draggedTask = null;
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        if (!draggedTask) return;
+
+        const dropZoneColumn = e.target.closest('.task-column');
+        if (!dropZoneColumn) return;
+
+        const taskId = draggedTask.dataset.taskId;
+        const newStatus = dropZoneColumn.dataset.columnId;
+
+        const task = data.folders[currentFolderIndex].tasks.find(t => t.id === taskId);
+        if (task && task.status !== newStatus) {
+            task.status = newStatus;
+            saveData();
+            renderTasks();
+        }
+    }
 
     // --- INITIALIZATION ---
-    const init = () => {
+    function init() {
         loadData();
-        applyTheme();
-        showFoldersView();
-        themeToggle.addEventListener('change', toggleTheme);
-        backToFoldersBtn.addEventListener('click', showFoldersView);
-    };
+        showFolderView();
+    }
 
     init();
 });

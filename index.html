@@ -18,17 +18,22 @@
                 <h1 class="app-title">FlowBoard</h1>
                 <div class="total-tasks-container">
                     <i class="fa-solid fa-list-check"></i>
-                    <span id="total-tasks-count">Total Tasks: 0</span>
+                    <span id="total-tasks-count">Active Tasks: 0</span>
+                </div>
+                <div class="total-tasks-container">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span id="finished-tasks-count">Tasks Finished: 0</span>
                 </div>
             </div>
             <div class="header-right">
                 <div class="theme-switcher">
-                    <i class="fa-solid fa-sun"></i>
                     <label class="switch">
                         <input type="checkbox" id="theme-toggle">
-                        <span class="slider round"></span>
+                        <span class="slider round">
+                            <i class="fa-solid fa-sun sun-icon"></i>
+                            <i class="fa-solid fa-moon moon-icon"></i>
+                        </span>
                     </label>
-                    <i class="fa-solid fa-moon"></i>
                 </div>
             </div>
         </header>
@@ -36,18 +41,14 @@
         <main id="folders-view" class="view active-view">
             <div class="folders-header">
                 <h2>My Folders</h2>
-                <form id="add-folder-form" class="add-form">
-                    <input type="text" id="new-folder-name" placeholder="New Folder Name" required>
-                    <button type="submit"><i class="fa-solid fa-plus"></i> Add Folder</button>
-                </form>
-            </div>
+                </div>
             <div id="folders-grid" class="folders-grid">
                 </div>
         </main>
 
         <main id="board-view" class="view">
             <div class="board-header">
-                <button id="back-to-folders-btn"><i class="fa-solid fa-arrow-left"></i> Back to Folders</button>
+                <button id="back-to-folders-btn"><i class="fa-solid fa-arrow-left"></i></button>
                 <h2 id="board-title"></h2>
             </div>
             <div class="kanban-board">
